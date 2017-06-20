@@ -1,0 +1,724 @@
+---
+title: "Wine_Exploratory_Data_Analysis"
+output: html_document
+---
+
+========================================================
+  
+# White Wine Exploratory Data Analysis
+### By Sargam Shah
+ 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+# Load all of the packages  
+library(dplyr)
+library(GGally)
+library(reshape2)
+library(gridExtra)
+library(memisc)
+library(ggplot2)
+```
+
+```{r echo=FALSE, Load_the_Data}
+# Load the Data
+wines <- read.csv('wineQualityWhites.csv')
+
+```
+
+
+In this project, I will use R and apply exploratory data analysis techniques to explore relationships in one variable to multiple variables and to explore a selected data set containing White Wine information for distributions, outliers, and anomalies.
+
+The original dataset is available here:   http://www3.dsi.uminho.pt/pcortez/wine/
+
+# Univariate Plots Section
+ 
+I want to take a look at the key statistics, data types, summary etc. of the wine data.
+
+```{r echo=FALSE, Univariate_Plots}
+
+#Use a few functions to evaluate some basic attributes of the dataset
+dim(wines)
+names(wines)
+str(wines)
+head(wines)
+summary(wines)
+
+
+```
+
+Mean of Quality is 5.8 and median is 6. The quality ranges only from 3 to 9. Thus, 1,2 and 10 ranks are not used.
+Residual sugar has a mean of about 6 but max is 65.8. Citric acid has minimum value of 0. Rest have minimum value greater than 0.
+pH value ranges from 3 to 3.3. 
+The guideline shows that sugar value above 45 is considered sweet. Lets find out any such sample. 
+
+
+
+```{r echo=FALSE, warning=FALSE}
+#Determine how many sugar observations are greater than 45
+table(wines$residual.sugar >= 45)
+#Change the quality variable to an ordered factor
+wines$quality.int <- wines$quality
+wines$quality <- factor(wines$quality, ordered = TRUE)
+str(wines$quality)
+
+```
+
+Quality factor should be qualitative and thus be converted to ordered scale. 
+
+Lets take a look at the histogram for quality:
+
+```{r echo=FALSE, warning=FALSE}
+#Create a histogram for our main feature: quality
+ggplot(aes(x = quality), data = wines) +
+  geom_bar()
+
+#Test how many quality ratings are 6
+table(wines$quality == 6)
+```
+
+The most common quality rating is 6 with 2198 observations.
+5 and 7 are the second and third most common. 3 can be considered as very poor and 9 as very good.
+
+```{r echo=FALSE, warning=FALSE}
+#Create histograms for each additional variable after quality
+h1 <- ggplot(aes(x = fixed.acidity), data = wines) +
+  geom_histogram() + theme(axis.text = element_blank(), axis.title=element_text(size=9))
+h2 <- ggplot(aes(x = volatile.acidity), data = wines) +
+  geom_histogram() + theme(axis.text = element_blank(), axis.title=element_text(size=9))
+h3 <- ggplot(aes(x = citric.acid), data = wines) +
+  geom_histogram() + theme(axis.text = element_blank(), axis.title=element_text(size=9))
+h4 <- ggplot(aes(x = residual.sugar), data = wines) +
+  geom_histogram() + theme(axis.text = element_blank(), axis.title=element_text(size=9))
+h5 <- ggplot(aes(x = chlorides), data = wines) +
+  geom_histogram() + theme(axis.text = element_blank(), axis.title=element_text(size=9))
+h6 <- ggplot(aes(x = free.sulfur.dioxide), data = wines) +
+  geom_histogram() + theme(axis.text = element_blank(), axis.title=element_text(size=9))
+h7 <- ggplot(aes(x = total.sulfur.dioxide), data = wines) +
+  geom_histogram() + theme(axis.text = element_blank(), axis.title=element_text(size=9))
+h8 <- ggplot(aes(x = density), data = wines) +
+  geom_histogram() + theme(axis.text = element_blank(), axis.title=element_text(size=9))
+h9 <- ggplot(aes(x = pH), data = wines) +
+  geom_histogram() + theme(axis.text = element_blank(), axis.title=element_text(size=9))
+h10 <- ggplot(aes(x = sulphates), data = wines) +
+  geom_histogram() + theme(axis.text = element_blank(), axis.title=element_text(size=9))
+h11 <- ggplot(aes(x = alcohol), data = wines) +
+  geom_histogram() + theme(axis.text = element_blank(), axis.title=element_text(size=9))
+#Display all the plots in one chart
+grid.arrange(h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11)
+
+
+```
+
+I want to adjust the binwidths on these charts so that I can more accurately follow the curve of the data.
+
+
+```{r echo=FALSE, warning=FALSE}
+#Create histograms for each additional variable after quality
+#Adjust the binwidths
+b1 <- ggplot(aes(x = fixed.acidity), data = wines) +
+  geom_histogram(binwidth = 0.1) + theme(axis.text = element_blank(), axis.title=element_text(size=9))
+b2 <- ggplot(aes(x = volatile.acidity), data = wines) +
+  geom_histogram(binwidth = 0.01) + theme(axis.text = element_blank(), axis.title=element_text(size=9))
+b3 <- ggplot(aes(x = citric.acid), data = wines) +
+  geom_histogram(binwidth = 0.02) + theme(axis.text = element_blank(), axis.title=element_text(size=9))
+b4 <- ggplot(aes(x = residual.sugar), data = wines) +
+  geom_histogram(binwidth = 1) + theme(axis.text = element_blank(), axis.title=element_text(size=9))
+b5 <- ggplot(aes(x = chlorides), data = wines) +
+  geom_histogram(binwidth = 0.005) + theme(axis.text = element_blank(), axis.title=element_text(size=9))
+b6 <- ggplot(aes(x = free.sulfur.dioxide), data = wines) +
+  geom_histogram(binwidth = 5) + theme(axis.text = element_blank(), axis.title=element_text(size=9))
+b7 <- ggplot(aes(x = total.sulfur.dioxide), data = wines) +
+  geom_histogram(binwidth = 10) + theme(axis.text = element_blank(), axis.title=element_text(size=9))
+b8 <- ggplot(aes(x = density), data = wines) +
+  geom_histogram(binwidth = 0.001) + theme(axis.text = element_blank(), axis.title=element_text(size=9))
+b9 <- ggplot(aes(x = pH), data = wines) +
+  geom_histogram(binwidth = 0.05) + theme(axis.text = element_blank(), axis.title=element_text(size=9))
+b10 <- ggplot(aes(x = sulphates), data = wines) +
+  geom_histogram(binwidth = 0.02) + theme(axis.text = element_blank(), axis.title=element_text(size=9))
+b11 <- ggplot(aes(x = alcohol), data = wines) +
+  geom_histogram(binwidth = 0.1) + theme(axis.text = element_blank(), axis.title=element_text(size=9))
+#Display all the plots in one chart
+grid.arrange(b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11)
+
+
+```
+
+All of the variables follow a normal distribution except for residual sugar. I will use the log transform on the x axis to try to make it look less long-tailed.
+
+```{r echo=FALSE, warning=FALSE}
+#Histogram for residual sugar using log transform
+plot1 <- ggplot(aes(x = residual.sugar), data = wines) +
+  scale_x_log10() +
+  geom_histogram(binwidth = 0.05)
+#Frequency polygon for residual sugar using log transform
+plot2 <- qplot(x = residual.sugar, data = wines,
+      geom = 'freqpoly') +
+  scale_x_log10()
+
+grid.arrange(plot1, plot2)
+
+```
+
+Now the residual sugar chart follows more of a normal distribution. It is worth noting that the curve does appear bimodal with two spikes. The frequency polygon makes the bimodality even more obvious.
+
+I also noticed in the histograms that several of the features have outliers that shift the bell curves to the left side of the plot, including residual sugar, chlorides, free sulfur dioxide, and density.
+
+
+```{r echo=FALSE, warning=FALSE}
+#Prepare to remove outliers from a few of the fields
+quantile(wines$chlorides, 0.99)
+quantile(wines$density, 0.99)
+```
+I noticed that many histograms have outliers that shift the bell curve to the left. I adjust to remove the outliers.
+
+```{r echo=FALSE, warning=FALSE}
+#Create histograms for each additional variable after quality
+#Adjust them to remove outliers
+h1 <- ggplot(aes(x = fixed.acidity), data = wines) +
+  xlim(quantile(wines$fixed.acidity, 0.01),
+       quantile(wines$fixed.acidity, 0.99)) +
+  geom_histogram(binwidth = 0.1) + theme(axis.text = element_blank(), axis.title=element_text(size=9))
+h2 <- ggplot(aes(x = volatile.acidity), data = wines) +
+  xlim(quantile(wines$volatile.acidity, 0.01),
+       quantile(wines$volatile.acidity, 0.99)) +
+  geom_histogram(binwidth = 0.01) + theme(axis.text = element_blank(), axis.title=element_text(size=9))
+h3 <- ggplot(aes(x = citric.acid), data = wines) +
+  xlim(quantile(wines$citric.acid, 0.01),
+       quantile(wines$citric.acid, 0.99)) +
+  geom_histogram(binwidth = 0.02)+ theme(axis.text = element_blank(), axis.title=element_text(size=9))
+h4 <- ggplot(aes(x = residual.sugar), data = wines) +
+  xlim(quantile(wines$residual.sugar, 0.01),
+       quantile(wines$residual.sugar, 0.99)) +
+  geom_histogram(binwidth = 0.05) +
+  scale_x_log10()+ theme(axis.text = element_blank(), axis.title=element_text(size=9))
+h5 <- ggplot(aes(x = chlorides), data = wines) +
+  xlim(quantile(wines$chlorides, 0.01),
+       quantile(wines$chlorides, 0.99)) +
+  geom_histogram(binwidth = 0.005)+ theme(axis.text = element_blank(), axis.title=element_text(size=9))
+h6 <- ggplot(aes(x = free.sulfur.dioxide), data = wines) +
+  xlim(quantile(wines$free.sulfur.dioxide, 0.01),
+       quantile(wines$free.sulfur.dioxide, 0.99)) +
+  geom_histogram(binwidth = 5)+ theme(axis.text = element_blank(), axis.title=element_text(size=9))
+h7 <- ggplot(aes(x = total.sulfur.dioxide), data = wines) +
+  xlim(quantile(wines$total.sulfur.dioxide, 0.01),
+       quantile(wines$total.sulfur.dioxide, 0.99)) +
+  geom_histogram(binwidth = 10)+ theme(axis.text = element_blank(), axis.title=element_text(size=9))
+h8 <- ggplot(aes(x = density), data = wines) +
+  xlim(quantile(wines$density, 0.01),
+       quantile(wines$density, 0.99)) +
+  geom_histogram(binwidth = 0.001)+ theme(axis.text = element_blank(), axis.title=element_text(size=9))
+h9 <- ggplot(aes(x = pH), data = wines) +
+  xlim(quantile(wines$pH, 0.01),
+       quantile(wines$pH, 0.99)) +
+  geom_histogram(binwidth = 0.05)+ theme(axis.text = element_blank(), axis.title=element_text(size=9))
+h10 <- ggplot(aes(x = sulphates), data = wines) +
+  xlim(quantile(wines$sulphates, 0.01),
+       quantile(wines$sulphates, 0.99)) +
+  geom_histogram(binwidth = 0.02)+ theme(axis.text = element_blank(), axis.title=element_text(size=9))
+h11 <- ggplot(aes(x = alcohol), data = wines) +
+  xlim(quantile(wines$alcohol, 0.01),
+       quantile(wines$alcohol, 0.99)) +
+  geom_histogram(binwidth = 0.1)+ theme(axis.text = element_blank(), axis.title=element_text(size=9))
+#Display all the plots in one chart
+grid.arrange(h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11)
+
+```
+
+Now I can read the charts more cleanly without the outliers, and ignoring the outliers could potentially lead to a better model.
+
+
+
+# Univariate Analysis
+ 
+### What is the structure of your dataset?
+
+There are 4,898 white wine observations in the dataset with 11 quantitative features (fixed acidity, volatile acidity, citric acid, residual sugar, chlorides, free sulfur dioxide, total sulfur dioxide, density, pH, sulphates, and alcohol). All of these features are number ranges so none are factor variables.
+
+The final variable of quality can be considered an ordered factor because it scores the wine from 0 to 10. Despite that potential range, the actual quality values in this dataset range from 3 to 9. The median quality is 6 and the mean is 5.878, so a 6 rating is actually closer to average than a 5 for this dataset.
+ 
+
+### What is/are the main feature(s) of interest in your dataset?
+
+Quality is the main feature of the dataset. I would like to create a predictive model to predict the quality.
+Moreover, alcohol content also affects the quality of the wine. 
+
+
+### What other features in the dataset do you think will help support your \
+investigation into your feature(s) of interest?
+
+It could be any or all of the 11 variables playing a role in determining the quality of wine. Also, those who have higher mean/median might be having greater impact on the quality. 
+
+
+### Did you create any new variables from existing variables in the dataset?
+No.
+
+
+### Of the features you investigated, were there any unusual distributions? \
+Did you perform any operations on the data to tidy, adjust, or change the form \
+of the data? If so, why did you do this?
+
+One of the first adjustments I made to the data was to change the data type of quality to be an ordered factor. It can be analyzed more naturally in this way because the quality ratings can be thought of as discrete levels. This also preps it for future analysis such as box plots.
+
+The residual sugar histogram was the only histogram that did not look normal because it was too long-tailed, so I applied a log transform to the x-axis. As expected, the distribution became more normal, but it also took on a bimodal shape. This means that the measurements for residual sugar loosely group together at a lower value and a higher value. This may have an impact on the quality and warrants further investigation.
+
+Another adjustment I made to the data when evaluating the histograms was to adjust the binwidths and remove the outliers. Adjusting the binwidths allowed me to see the distribution of the data more clearly. Also, after removing the bottom and top 1% of each variable, I could get a much clearer feel for the shape of the main parts of the histogram distribution.
+
+
+
+# Bivariate Plots Section
+ 
+```{r echo=FALSE, Bivariate_Plots, warning=FALSE}
+#Create a chart that plots all of the variables against each other
+wines$X <- NULL #Remove the X variable from the data
+ggpairs(wines)
+
+```
+
+I quickly analyzed all of the variables using ggpairs in order to see what jumps out immediately. The correlations are precise since I used all 4,898 observations in this analysis. 
+From the plot it could be found that 
+
+Quality and alcohol: 0.436
+Quality and density: -0.307
+Quality and chlorides: -0.210
+
+Thus, these variables are not positively or strongly correlated.
+
+I want to take a look at the quality boxplots for each of our variables, while focusing mainly on the correlating variables identified above.
+
+
+```{r echo=FALSE, warning=FALSE}
+#Create a box plot for each variable
+qp1 <- qplot(x = quality, y = fixed.acidity, data = wines, 
+             geom = 'boxplot') + theme(axis.text = element_blank(), axis.title=element_text(size=9)) 
+qp2 <- qplot(x = quality, y = volatile.acidity, data = wines, 
+             geom = 'boxplot')+ theme(axis.text = element_blank(), axis.title=element_text(size=9)) 
+qp3 <- qplot(x = quality, y = citric.acid, data = wines, 
+             geom = 'boxplot')+ theme(axis.text = element_blank(), axis.title=element_text(size=9)) 
+qp4 <- qplot(x = quality, y = residual.sugar, data = wines, 
+             geom = 'boxplot')+ theme(axis.text = element_blank(), axis.title=element_text(size=9)) 
+qp5 <- qplot(x = quality, y = chlorides, data = wines, 
+             geom = 'boxplot')+ theme(axis.text = element_blank(), axis.title=element_text(size=9)) 
+qp6 <- qplot(x = quality, y = free.sulfur.dioxide, data = wines, 
+             geom = 'boxplot')+ theme(axis.text = element_blank(), axis.title=element_text(size=9)) 
+qp7 <- qplot(x = quality, y = total.sulfur.dioxide, data = wines, 
+             geom = 'boxplot')+ theme(axis.text = element_blank(), axis.title=element_text(size=9)) 
+qp8 <- qplot(x = quality, y = density, data = wines, 
+             geom = 'boxplot')+ theme(axis.text = element_blank(), axis.title=element_text(size=9)) 
+qp9 <- qplot(x = quality, y = pH, data = wines, 
+             geom = 'boxplot')+ theme(axis.text = element_blank(), axis.title=element_text(size=9)) 
+qp10 <- qplot(x = quality, y = sulphates, data = wines, 
+              geom = 'boxplot')+ theme(axis.text = element_blank(), axis.title=element_text(size=9)) 
+qp11 <- qplot(x = quality, y = alcohol, data = wines, 
+              geom = 'boxplot')+ theme(axis.text = element_blank(), axis.title=element_text(size=9)) 
+grid.arrange(qp1,qp2,qp3,qp4,qp5,qp6,qp7,qp8,qp9,qp10,qp11)
+
+  
+
+```
+
+I want to take a look at the box plot and scatter plot for the three variables with the correlation with quality.
+
+
+```{r echo=FALSE, warning=FALSE}
+#Create a scatterplot and a box plot for quality vs the 3 correlating 
+#variables
+s1 <- ggplot(aes(x = alcohol, y = quality), data = wines) +
+  geom_point()
+bp1 <- qplot(x = quality, y = alcohol,
+             data = wines,
+             geom = 'boxplot')
+grid.arrange(s1,bp1)
+#grid.arrange(s1,bp1, main = "Quality and Alcohol correlation")
+
+s2 <- ggplot(aes(x = density, y = quality), data = wines) +
+  geom_point()+ 
+  xlim(quantile(wines$density, 0.01),
+       quantile(wines$density, 0.99)) 
+bp2 <- qplot(x = quality, y = density,
+             data = subset(wines, wines$density <= 
+                             quantile(wines$density, 0.99)),
+             geom = 'boxplot')
+grid.arrange(s2,bp2)
+#grid.arrange(s2,bp2, main = "Quality and Density correlation")
+
+s3 <- ggplot(aes(x = chlorides, y = quality), data = wines) +
+  geom_point()
+bp3 <- qplot(x = quality, y = chlorides,
+             data = wines,
+             geom = 'boxplot')
+grid.arrange(s3,bp3)
+#grid.arrange(s3,bp3, main = "Quality and Chlorides correlation")
+```
+
+
+I want to make some adjustments to these plots, including:
+Adding jitter in order to visualize trends
+Changing transparency in order to prevent overplotting
+Limiting the axes to remove outliers
+
+```{r echo=FALSE, warning=FALSE}
+#Create a scatterplot and a box plot for quality vs the 3 correlating variables
+#Add jitter and adjust transparency
+s1 <- ggplot(aes(x = alcohol, y = quality), data = wines) +
+  geom_jitter(alpha = 1/10)
+bp1 <- qplot(x = quality, y = alcohol,
+             data = wines,
+             geom = 'boxplot')
+grid.arrange(s1,bp1)
+
+s2 <- ggplot(aes(x = density, y = quality), data = wines) +
+  geom_jitter(alpha = 1/5) + 
+  xlim(quantile(wines$density, 0.01),
+       quantile(wines$density, 0.99))  
+bp2 <- qplot(x = quality, y = density,
+             data = subset(wines, wines$density <= 
+                             quantile(wines$density, 0.99)),
+             geom = 'boxplot') 
+grid.arrange(s2,bp2)
+
+s3 <- ggplot(aes(x = chlorides, y = quality), data = wines) +
+  geom_jitter(alpha = 1/5) +
+  xlim(quantile(wines$chlorides, 0.01),
+       quantile(wines$chlorides, 0.99))  
+bp3 <- qplot(x = quality, y = chlorides,
+             data = subset(wines, wines$chlorides <= 
+                             quantile(wines$chlorides, 0.99)),
+             geom = 'boxplot')
+grid.arrange(s3,bp3)
+
+```
+
+The strongest correlation is between quality and alcohol.
+There is a positive correlation which is evident from the box plot since as the quality increases from 5 to 9 the alcohol content also increases.
+
+From the graphs, it could be seen that density and quality have a negative correlation because as the quality increases from 5 to 8 the density decreases which can be seen from the mean and the quartile ranges. 
+
+Finally the third jitter chart shows that as the chloride levels increase above 0.8 the quality lies between 4 and 6. Thus the correlation is there but it is very weak.
+
+I want to create a histogram of alcohol that is colored based on the quality variable.
+
+
+```{r echo=FALSE, warning=FALSE}
+#Create an alcohol histogram that is colored based on the quality variable
+ggplot(aes(x = alcohol), data = wines) +
+  geom_histogram(aes(fill = quality), binwidth = 0.1) +
+  scale_fill_brewer(type = 'seq')
+by(wines$alcohol, wines$quality, summary)
+
+```
+
+This histogram supports my hypothesis because as the alcohol level increase the histogram of quality 5 is skewed and replaced by histogram of 6 and 7.
+
+I want to take the same approach with density:
+
+
+```{r echo=FALSE, warning=FALSE}
+#Create a density histogram that is colored based on the quality variable
+ggplot(aes(x = density), data = wines) +
+  geom_histogram(aes(fill = quality), binwidth = 0.0002) + 
+    scale_fill_brewer(type = 'seq') +
+  xlim(quantile(wines$density, 0.01),
+       quantile(wines$density, 0.99))
+
+
+
+```
+
+This data again show that as quality increases, there is a downward trend of the density values.
+
+Since alcohol has the highest correlation of any of the features, I want to test a linear model for the alcohol and quality scatterplot.
+
+
+```{r echo=FALSE, warning=FALSE}
+
+#Apply a linear model to the alcohol and quality scatterplot
+ggplot(aes(x = alcohol, y = quality.int), data = wines) +
+  geom_jitter(alpha = 1/10) + 
+  geom_smooth(method = 'lm', color = 'red')
+
+summary(lm(I(alcohol) ~ I(quality), data = wines))
+ 
+```
+
+In addition to evaluating the correlations related to quality, I also want to understand how the other variables work with each other. Here are the correlations of note that do not involve quality:
+Total sulfur dioxide and residual sugar: 0.401
+Total sulfur dioxide and free sulfur dioxide: 0.616
+Total sulfur dioxide and alcohol: -0.449
+Density and residual sugar: 0.839
+Alcohol and density: -0.780
+Residual sugar and alcohol: -0.451
+Fixed acidity and pH: -0.426
+
+```{r echo=FALSE, warning=FALSE}
+
+
+#Create scatterplots for total sulfur dioxide and correlating fields
+tsd1 <- ggplot(aes(x = total.sulfur.dioxide, y = residual.sugar), 
+               data = wines) +
+  geom_point(alpha = 1/5) +
+  xlim(quantile(wines$total.sulfur.dioxide, 0.01),
+       quantile(wines$total.sulfur.dioxide, 0.99)) +
+  ylim(quantile(wines$residual.sugar, 0.01),
+       quantile(wines$residual.sugar, 0.99))
+tsd2 <- ggplot(aes(x = total.sulfur.dioxide, y = free.sulfur.dioxide), 
+               data = wines) +
+  geom_point(alpha = 1/5) + 
+  xlim(quantile(wines$total.sulfur.dioxide, 0.01),
+       quantile(wines$total.sulfur.dioxide, 0.99)) +
+  ylim(quantile(wines$free.sulfur.dioxide, 0.01),
+       quantile(wines$free.sulfur.dioxide, 0.99))
+ 
+tsd4 <- ggplot(aes(x = total.sulfur.dioxide, y = alcohol), 
+               data = wines) +
+  geom_point(alpha = 1/5) + 
+  xlim(quantile(wines$total.sulfur.dioxide, 0.01),
+       quantile(wines$total.sulfur.dioxide, 0.99))  
+  ylim(quantile(wines$alcohol, 0.01),
+       quantile(wines$alcohol, 0.99))
+grid.arrange(tsd1, tsd2, tsd4)
+
+
+```
+
+The total sulfur dioxide correlations are evident in the visualizations above.
+Density, alcohol, and residual sugar all appear to have a strong correlation with each other, so I want to take a look at those plots.
+
+```{r echo=FALSE, warning=FALSE}
+
+#Create scatterplots for sugar, density, and alcohol
+den1 <- ggplot(aes(x = density, y = residual.sugar), data = wines) +
+  geom_point(alpha = 1/5) +
+  xlim(quantile(wines$density, 0.01),
+       quantile(wines$density, 0.99)) +
+  ylim(quantile(wines$residual.sugar, 0.01),
+       quantile(wines$residual.sugar, 0.99))
+alc1 <- ggplot(aes(x = alcohol, y = density), data = wines) +
+  geom_jitter(alpha = 1/5) + 
+  xlim(quantile(wines$alcohol, 0.01),
+       quantile(wines$alcohol, 0.99)) +
+  ylim(quantile(wines$density, 0.01),
+       quantile(wines$density, 0.99))
+sug1 <- ggplot(aes(x = residual.sugar, y = alcohol), data = wines) +
+  geom_point(alpha = 1/5) + 
+  xlim(quantile(wines$residual.sugar, 0.01),
+       quantile(wines$residual.sugar, 0.99)) +
+  ylim(quantile(wines$alcohol, 0.01),
+       quantile(wines$alcohol, 0.99))
+grid.arrange(den1, alc1, sug1)
+
+```
+
+The correlations are apparent in the above charts. Sugar must be more dense than other ingredients in the wine, because higher levels of sugar have higher density. Alcohol must be less dense than other ingredients, because higher levels of alcohol have less density. Thirdly, alcohol and sugar may offset each other during the wine-making process, because lower levels of alcohol tend to have higher levels of sugar (and vice versa). 
+
+The last correlation I want to highlight is the correlation between pH and fixed acidity. This correlation makes logical sense because as fixed acidity increases, the pH value becomes more acidic.
+
+```{r echo=FALSE, warning=FALSE}
+#Create a scatterplot for fixed acidity and pH
+ggplot(aes(x = fixed.acidity, y = pH), data = wines) +
+  geom_point(alpha = 1/5) +
+  xlim(quantile(wines$fixed.acidity, 0.01),
+       quantile(wines$fixed.acidity, 0.99)) +
+  ylim(quantile(wines$pH, 0.01),
+       quantile(wines$pH, 0.99))
+
+```
+
+# Bivariate Analysis
+ 
+
+### Talk about some of the relationships you observed in this part of the \
+investigation. How did the feature(s) of interest vary with other features in \
+the dataset?
+
+The quality variable (my main feature of interest) is loosely correlated with the alcohol, density, and chlorides variables. As the alcohol level increases from 3 to 5, the quality trends downwards. As the alcohol level increases from 5 to 9, the quality trends upwards.
+
+A similar relationship existed between alcohol and density; however, as the density increased from 5 to 9, the quality trended downwards as opposed to upwards.
+ 
+
+### Did you observe any interesting relationships between the other features \
+(not the main feature(s) of interest)?
+
+As the alcohol level increases, the density level tends to decrease. Also, as the residual sugar level increases, the density tends to increase. 
+
+
+### What was the strongest relationship you found?
+
+The strongest relation that I found was between density and residual sugar. 
+
+# Multivariate Plots Section
+ 
+In order to evaluate additional variables in new and meaningful ways, I want to convert several of the numeric variables of interest into ordered factors.
+
+
+```{r echo =  FALSE, warning=FALSE}
+#Create categorical variables for the continuous fields
+wines$alcohol.bucket <- 
+  with(wines, cut(alcohol, breaks = c(7,9.5,10.4,11.4, 14.2),
+                  ordered = TRUE))
+wines$density.bucket <- 
+  with(wines, cut(density, breaks = c(.9871,.9917,.9937,.9961,1.039),
+                  ordered = TRUE))
+wines$chlorides.bucket <- 
+  with(wines, cut(chlorides, breaks = c(.008,.036,.043,.05,.346),
+                  ordered = TRUE))
+wines$residual.sugar.bucket <- 
+  with(wines, cut(residual.sugar, breaks = c(.5,5.2,65.8),
+                  ordered = TRUE))
+wines$quality.bucket <- 
+  with(wines, cut(wines$quality.int, breaks = c(2,5,7,10),
+                  ordered = TRUE))
+#Display the resulting fields and their data types
+str(wines)
+
+```
+
+
+I want to evaluate the relationship between density, alcohol, and residual sugar in a single plot.
+
+```{r echo = FALSE, warning=FALSE}
+
+#Plot density vs alcohol with the residual sugar bucket setting the color
+ggplot(aes(x = alcohol, y = density), data = wines) +
+  geom_jitter(aes(color = residual.sugar.bucket), alpha = 1/2) +
+  ylim(quantile(wines$density, 0.01),
+       quantile(wines$density, 0.99))
+
+
+
+```
+
+As alcohol increases, density decreases. Higher density levels are associated with higher levels of residual sugar (blue dots), and higher alcohol levels are associated with lower levels of residual sugar (red dots).
+
+I also want to use multivariate analysis methods to visualize the relationship between residual sugar, alcohol and quality.
+
+
+```{r echo = FALSE, warning=FALSE}
+#Plot 3 variables in one chart using color and size aesthetics
+ggplot(aes(x = alcohol, 
+           y = residual.sugar  , color = factor(quality)), 
+       data = wines) +
+      geom_point(alpha = 0.8, size = 1) +
+      geom_smooth(method = "lm", se = FALSE,size=1)  +
+  scale_color_brewer(type='seq',
+                   guide=guide_legend(title='Quality'))
+
+```
+
+The above plot demonstrates the relationship between quality and the 2 correlating variables in a single visualization.
+
+As the residual sugar level increases the alcohol level in the wine decreases. Highest quality wine of 9 have alcohol content ranging from 10.2 to 13 and residual sugar content from 2 to 10. 
+
+# Multivariate Analysis
+
+
+### Talk about some of the relationships you observed in this part of the \
+investigation. Were there features that strengthened each other in terms of \
+looking at your feature(s) of interest?
+
+In this part of the investigation, I was able to:
+
+Visualize some relationships more concisely and effectively: I strengthened my insight into the relationship between density, alcohol, and residual sugar in a single plot.
+
+Evaluate some relationships at a deeper level: I determined that the relationship between density and alcohol stays consistent for all quality values. However, the relationship between chlorides and alcohol may change based on the quality.
+
+  
+### Were there any interesting or surprising interactions between features?
+
+No. The graphs just strengthened my hypothesis. 
+
+### OPTIONAL: Did you create any models with your dataset? Discuss the \
+strengths and limitations of your model.
+No.
+------
+
+# Final Plots and Summary
+ 
+
+### Plot One
+#### Relationship between Quality and Alcohol features
+```{r echo=FALSE, Plot_One, warning=FALSE}
+
+#Create a scatterplot and a box plot for quality vs alcohol
+s1 <- ggplot(aes(x = alcohol, y = quality), data = wines) +
+  geom_jitter(alpha = 1/10) +
+  xlab("Alcohol level (% by volume)") +
+  ylab("Quality score (0 to 10)") +
+  ggtitle("Scatterplot") +
+  scale_x_continuous(breaks = seq(8,14,1))
+bp1 <- qplot(x = quality, y = alcohol,
+             data = wines,
+             geom = 'boxplot') +
+  xlab("Quality score (0 to 10)") +
+  ylab("Alcohol level (% by volume)") +
+  ggtitle("Boxplot") +
+  scale_y_continuous(breaks = seq(8,14,1))
+grid.arrange(s1,bp1)  
+```
+
+### Description One
+
+This plot represents a key finding in my analysis. The strongest correlation between my main feature of interest (quality) and any other feature was alcohol at 0.436. This chart helps to visualize that relationship. In the scatterplot at the top, the concentration of points has an upward trend from left to right, which shows that as the alcohol level increases, the quality level also increases. I used jitter and changed the transparency in order to visualize this trend. The boxplot allows me to evaluate this relationship more precisely by showing that as quality increases from 3 to 5, the median alcohol level actually decreases. However, as quality increases above 5, the median alcohol level steadily increases from 9.5% to 12.5%.
+This downward trend followed by an upward trend leads me to believe that there is a minimum threshold of alcohol content that needs to be reached for the wine to start having a positive effect on the quality. Once that threshold is reached, the quality increases with the alcohol content. If the alcohol level continued to increase above 12.5%, it would eventually start having a negative effect on the quality.
+
+
+### Plot Two
+```{r echo=FALSE, Plot_Two, warning=FALSE}
+
+#Create a density histogram that is colored based on the quality variable
+ggplot(aes(x = density), data = wines) +
+  geom_histogram(aes(fill = quality), binwidth = 0.0002) + 
+  scale_fill_brewer(type = 'seq') +
+  xlim(quantile(wines$density, 0.01),
+       quantile(wines$density, 0.99)) +
+  xlab("Density (g / cm^3)") +
+  ylab("Count of white wines") +
+  ggtitle("Histogram of Density with Color set by Quality")
+
+```
+
+### Description Two
+
+This histogram provides a good visualization of the relationship between density and quality. Since there are some outliers for density, I removed the top and bottom 1% from the chart.
+Since the color is set by the quality, each quality value has a unique impact on the overall histogram, and I can draw insight from these distributions. The center of the distributions shift to the left as the color changes darker blue. This means that the main concentration of density values decreases as the quality increases.
+Summarizing the data by quality supports this assertion: The median density steadily decreases from 0.9953 to 0.9903 as the quality value increases from "poor" (5) to "good" (9). This is similar to what I noticed when evaluating the correlation between alcohol and quality in the last plot. I realized that I needed to investigate the relationship between density and alcohol.
+
+
+
+### Plot Three
+```{r echo=FALSE, Plot_Three, warning=FALSE}
+
+#Plot density vs alcohol with the residual sugar bucket setting the color
+ggplot(aes(x = alcohol, y = density), data = wines) +
+  geom_jitter(aes(color = residual.sugar.bucket), alpha = 1/2) +
+  ylim(quantile(wines$density, 0.01),
+       quantile(wines$density, 0.99)) +
+  ylab("Density (g / cm^3)") +
+  xlab("Alcohol level (% by volume)") +
+  scale_colour_discrete(name = "Residual Sugar",
+                            labels=c("0.5 - 5.2", "5.2 - 65.8")) +
+  ggtitle("Scatterplot of Density vs Alcohol with Color set by Sugar")
+
+
+```
+
+### Description Three
+
+This plot reflects the relationship between density, alcohol, and sugar in a single visualization. I split the residual sugar values into two buckets delineated by the median value of 5.2 in order to see the trends more clearly.
+I can see that as the alcohol level increases, the density decreases because the scatterplot has a downward trend to the right. This suggests that alcohol is one of the less dense ingredients in wine. Also, the sugar red/blue coloring shows that as the sugar increases, the density also increases, since the blue dots are higher on the chart than the red dots. This suggests that sugar is one of the more dense ingredients in wine. Thirdly, there is a heavier concentration of blue dots on the left side of the chart than the right side, which means that lower alcohol levels are associated with higher levels of sugar. The correlation values between these variables support all of these insights from the chart.
+I investigated the wine-making process in order to better understand the relationship between these features. Fermentation converts the sugars to alcohol, so the conclusions from this chart make logical sense. This was interesting to me, because the data helped me understand how wine is created.
+
+------
+
+# Reflection 
+
+I got familiar with using extensive libraries of R and statistical functions along with code to create graphs. I also learnt how to apply jitter, transparency, facet wrapping and smooth the histograms by taking percentiles. 
+
+I understood the power of visualizing the data and how plotting the variables against each other makes drawing conclusion from the data way much easier.
+
+Understanding what the wine data is telling by proper analysis in one direction was the most challenging task because you need to have faith in your conclusions and validate it by examples. 
+
+Univariable and Bivariable analysis was smoother as compared to Multivariable analysis. Multivariate analysis was a struggle because you need to select the correct variables to plot against each other. Drawing conclusion was not the hard part because I was sure about my hypothesis from earlier analysis. Thus, the flow of analysis is important as well. 
+
+It was surprising to know how little I knew about White Wine before my Exploratory Data Analysis and how I came to a point of predicting the wine quality at the end of the analysis!
+ 
+Reflecting on this analysis exercise, I realize that the most valuable part was getting practice with applying thoughtful reasoning and drawing conclusions on a brand new dataset that I knew little about. I discovered useful insight about wines simply by evaluating the data, and I look forward to continuing to develop my skills on additional datasets.
