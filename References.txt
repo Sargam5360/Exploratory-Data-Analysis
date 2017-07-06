@@ -1,0 +1,2 @@
+https://rawgit.com/dwolfATL/White-Wine-EDA/master/EDA-whitewine.html
+https://github.com/dwolfATL/White-Wine-EDA/blob/master/EDA-whitewine.rmd
