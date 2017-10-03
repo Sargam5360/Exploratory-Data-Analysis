@@ -1,4 +1,4 @@
-# Exploratory-Data-Analysis
+# Exploratory Data Analysis
 You can view the project report at the following link:
 
 https://rawgit.com/Sargam5360/Exploratory-Data-Analysis/master/Sargam_WhiteWine_EDA.html
