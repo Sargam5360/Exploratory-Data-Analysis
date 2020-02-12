@@ -3,7 +3,7 @@ You can view the project report at the following link:
 
 https://rawgit.com/Sargam5360/Exploratory-Data-Analysis/master/Sargam_WhiteWine_EDA.html
 
-### About the project
+### About the the project
 
 Use R and apply exploratory data analysis techniques to explore relationships in one variable to multiple 
 variables and to explore a selected data set for distributions, outliers, and anomalies.
